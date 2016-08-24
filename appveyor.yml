@@ -1,0 +1,25 @@
+shallow_clone: true
+
+environment:
+  PreferredToolArchitecture: x64
+
+platform:
+  - x86
+  - x64
+
+configuration:
+  - Debug
+  - Release
+
+install:
+  - mkdir build && cd build
+  - if /I "%platform%" == "x86" cmake .. -G "Visual Studio 14"
+  - if /I "%platform%" == "x64" cmake .. -G "Visual Studio 14 Win64"
+
+build_script:
+  - msbuild "c:\projects\range-v3-VS2015\build\ALL_BUILD.vcxproj" /m /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" /p:Configuration=%configuration% /p:PreferredToolArchitecture=x64
+
+test_script:
+  - ctest -j2
+
+deploy: off
