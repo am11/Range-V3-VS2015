@@ -1,25 +1,42 @@
 shallow_clone: true
 
-environment:
-  PreferredToolArchitecture: x64
+os: Visual Studio 2015
 
-platform:
-  - x86
-  - x64
+environment:
+  matrix:
+  - COMPILER: msvc
+    GENERATOR: "Visual Studio 14 2015"
+    CFLAGS: /MP
+    CXXFLAGS: /MP
+  - COMPILER: msvc
+    GENERATOR: "Visual Studio 14 2015 Win64"
+    CFLAGS: /MP
+    CXXFLAGS: /MP
+  - COMPILER: mingw
+    GENERATOR: "MSYS Makefiles"
 
 configuration:
   - Debug
   - Release
 
+init:
+  - set PATH=C:\msys64\mingw64\bin;C:\msys64\usr\bin;%PATH%
+  - set MSYSTEM=MINGW64
+
 install:
   - mkdir build && cd build
-  - if /I "%platform%" == "x86" cmake .. -G "Visual Studio 14"
-  - if /I "%platform%" == "x64" cmake .. -G "Visual Studio 14 Win64"
+  - >
+      cmake
+      -DCMAKE_BUILD_TYPE="%CONFIGURATION%"
+      %CMAKE_OPTS%
+      -G "%GENERATOR%"
+      ..
 
 build_script:
-  - msbuild "c:\projects\range-v3-VS2015\build\ALL_BUILD.vcxproj" /m /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" /p:Configuration=%configuration% /p:PreferredToolArchitecture=x64
+  - if %COMPILER% == "mingw" ( cmake --build . -- -j4 ) else ( cmake --build . )
 
 test_script:
-  - ctest -j2
+  - ctest -j2 --output-on-failure --timeout=10
 
-deploy: off
+artifacts:
+  path: build
